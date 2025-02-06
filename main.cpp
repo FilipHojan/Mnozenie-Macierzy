@@ -4,6 +4,11 @@
 #include <windows.h>
 #include "omp.h"
 #include <cmath>
+#include <math.h>
+
+
+#define N 5000
+#define PP (3 * 1024 * 1024) // 3 MB w bajtach
 
 static const int ROWS = 1000;     // liczba wierszy macierzy  2048/3072/4096
 static const int COLUMNS = 1000;  // liczba kolumn macierzy   2048/3072/4096
