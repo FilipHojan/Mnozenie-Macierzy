@@ -9,16 +9,15 @@ Projekt mnożenia macierzy Filip Hojan & Igor Swiatek
 #include <time.h>
 //#include <windows.h>
 #include "omp.h"
-#include <cmath>
+//#include <cmath>
 #include <math.h>
+#include <stdlib.h>
 
 //u mnie cache ma 12288 kb
 #define N 5000
-#define PP (3 * 1024 * 1024) // 3 MB w bajtach
+#define PP 3145728 // 3 MB w bajtach
 
-FILE *result_file;
-
-void multiply_matrices_IKJ(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N], int N)
+void multiply_matrices_IKJ(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
     #pragma omp parallel for
     for (int i = 0; i < N; i++) {
@@ -31,7 +30,7 @@ void multiply_matrices_IKJ(float matrix_a[N][N], float matrix_b[N][N], float mat
     }
 }
 
-void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N], int N)
+void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
     size_t matrix_size = sizeof(float) * N * N;
     int k = (int)ceil((double)matrix_size / PP); 
@@ -52,10 +51,10 @@ void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float 
     }
 }
 
-void multiply_matrices_6_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N], int N)
+void multiply_matrices_6_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
     int r = floor(sqrt(PP/12.0));
-    int ka = floor(n/r);
+    int ka = floor(N/r);
 
 
     for (int i = 0; i < N; i += r) {
@@ -74,7 +73,7 @@ void multiply_matrices_6_loop(float matrix_a[N][N], float matrix_b[N][N], float 
     }
 }
 
-void initialize_matrices(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N], int N)
+void initialize_matrices(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
@@ -85,38 +84,38 @@ void initialize_matrices(float matrix_a[N][N], float matrix_b[N][N], float matri
     }
 }
 
-void clear_result_matrix(float matrix_c[N][N], N)
+void clear_result_matrix(float matrix_c[N][N])
 {
     #pragma omp parallel for 
-    for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLUMNS; j++) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
             matrix_c[i][j] = 0.0;
         }
     }
 }
 
-void print_elapsed_time(double start, char* description)
+/*void print_elapsed_time(double start, char* description)
 {
     double elapsed;
     elapsed = (double)clock() / CLK_TCK;
     printf("%s \t\t| czas: %8.4f sec \n", description, elapsed - start);
     fprintf(result_file, "%s \t\t| czas : %8.4f sec (%6.4f sec rozdzielczosc pomiaru)\n", description, elapsed-start, 1.0 / CLK_TCK);
-}
+}*/
 
-void check_results(float matrix_c[N][N], float matrix_c_reference[N][N], int N)
+int check_results(float matrix_c[N][N], float matrix_c_reference[N][N])
 {
-    for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLUMNS; j++) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
             if (abs(matrix_c_reference[i][j] - matrix_c[i][j]) > 0.001) {
                 printf("Błąd: %f != %f w pozycji [%d][%d]\n", matrix_c_reference[i][j], matrix_c[i][j], i, j);
-                return;
+                return 0;
             }
         }
     }
     printf("Wyniki poprawne.\n");
 }
 
-void multiply_sequential(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N], int N)
+void multiply_sequential(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
     for (int i = 0; i < N; i++) {
         for (int k = 0; k < N; k++) {
@@ -129,37 +128,47 @@ void multiply_sequential(float matrix_a[N][N], float matrix_b[N][N], float matri
 
 int main(int argc, char* argv[])
 {
-    double start;
-
+    clock_t start, end;
+    double used_time;	
+	
     float matrix_a[N][N];
     float matrix_b[N][N];
     float matrix_c[N][N];
     float matrix_c_reference[N][N];
 
-    initialize_matrices(matrix_a, matrix_b, matrix_c, N);
-    print_elapsed_time(clock() / CLK_TCK, "Inicjalizacja macierzy");
-    multiply_sequential(matrix_a, matrix_b, matrix_c_reference, N);
+    initialize_matrices(matrix_a, matrix_b, matrix_c);
+    //print_elapsed_time(clock() / CLK_TCK, "Inicjalizacja macierzy");
+    multiply_sequential(matrix_a, matrix_b, matrix_c_reference);
 
     // Test dla funkcji IKJ
-    clear_result_matrix(matrix_c, N);
-    start = clock() / CLK_TCK;
-    multiply_matrices_IKJ(matrix_a, matrix_b, matrix_c, N);
-    print_elapsed_time(start, "Mnozenie macierzy IKJ");
-    check_results(matrix_c, matrix_c_reference, N);
+    clear_result_matrix(matrix_c);
+    start = clock();
+    multiply_matrices_IKJ(matrix_a, matrix_b, matrix_c);
+    //print_elapsed_time(start, "Mnozenie macierzy IKJ");
+    end= clock();
+    used_time= ((double) (end - start)) / CLOCKS_PER_SEC;
+    check_results(matrix_c, matrix_c_reference);
+    printf("Funkcja IJK zajela %f sekund\n", used_time);
 
     // Test dla funkcji 4-pętlowej IKJ
-    clear_result_matrix(matrix_c, N);
-    start = clock() / CLK_TCK;
-    multiply_matrices_4_loop(matrix_a, matrix_b, matrix_c, N);
-    print_elapsed_time(start, "Mnozenie macierzy 4-petlowe");
-    check_results(matrix_c, matrix_c_reference, N);
+    clear_result_matrix(matrix_c);
+    start = clock();
+    multiply_matrices_4_loop(matrix_a, matrix_b, matrix_c);
+    //print_elapsed_time(start, "Mnozenie macierzy 4-petlowe");
+    end= clock();
+    used_time= ((double) (end - start)) / CLOCKS_PER_SEC;
+    check_results(matrix_c, matrix_c_reference);
+    printf("Funkcja 4_loops zajela %f sekund\n", used_time);
 
     // Test dla funkcji 6-pętlowej  IKJ
-    clear_result_matrix(matrix_c, N);
-    start = clock() / CLK_TCK;
-    multiply_matrices_6_loop(matrix_a, matrix_b, matrix_c, N);
-    print_elapsed_time(start, "Mnozenie macierzy 6-petlowe");
-    check_results(matrix_c, matrix_c_reference, N);
+    clear_result_matrix(matrix_c);
+    start = clock();
+    multiply_matrices_6_loop(matrix_a, matrix_b, matrix_c);
+    //print_elapsed_time(start, "Mnozenie macierzy 6-petlowe");
+    end= clock();
+    used_time= ((double) (end - start)) / CLOCKS_PER_SEC;
+    check_results(matrix_c, matrix_c_reference);
+    printf("Funkcja 6_loops zajela %f sekund\n", used_time);
 
     //fclose(result_file);
     return 0;
