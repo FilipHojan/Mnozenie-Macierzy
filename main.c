@@ -16,32 +16,7 @@ Projekt mnożenia macierzy Filip Hojan & Igor Swiatek
 #define N 5000
 #define PP (3 * 1024 * 1024) // 3 MB w bajtach
 
-
-/* To do
-zmiana calosci
-
-static const int ROWS = 1000;     // liczba wierszy macierzy  2048/3072/4096
-static const int COLUMNS = 1000;  // liczba kolumn macierzy   2048/3072/4096
-float matrix_a[ROWS][COLUMNS];    // lewy operand 
-float matrix_b[ROWS][COLUMNS];    // prawy operand
-float matrix_c[ROWS][COLUMNS];    // wynik
-float matrix_c_reference[ROWS][COLUMNS];  // wynik referencyjny dla porównania
-
-
-*/
-
-
-
 FILE *result_file;
-
-void initialize_matrices(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N], int N);
-void clear_result_matrix(float matrix_c[N][N], N);
-void print_elapsed_time(double start, char* description);
-void check_results();
-
-void multiply_matrices_IKJ(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N], int N);
-void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N], int N);
-void multiply_matrices_6_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N], int N);
 
 void multiply_matrices_IKJ(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N], int N)
 {
@@ -154,12 +129,6 @@ void multiply_sequential(float matrix_a[N][N], float matrix_b[N][N], float matri
 
 int main(int argc, char* argv[])
 {
-    /*if ((result_file = fopen("classic.txt", "a")) == NULL) {
-        fprintf(stderr, "Nie można otworzyć pliku wyniku \n");
-        perror("classic");
-        return(EXIT_FAILURE);
-    }*/
-
     double start;
 
     float matrix_a[N][N];
@@ -170,13 +139,6 @@ int main(int argc, char* argv[])
     initialize_matrices(matrix_a, matrix_b, matrix_c, N);
     print_elapsed_time(clock() / CLK_TCK, "Inicjalizacja macierzy");
     multiply_sequential(matrix_a, matrix_b, matrix_c_reference, N);
-
-    // Skopiowanie wyniku referencyjnego do matrix_c_reference
-    /*for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLUMNS; j++) {
-            matrix_c_reference[i][j] = matrix_c[i][j];
-        }
-    }*/
 
     // Test dla funkcji IKJ
     clear_result_matrix(matrix_c, N);
