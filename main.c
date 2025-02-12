@@ -13,7 +13,7 @@ Projekt mnożenia macierzy Filip Hojan & Igor Swiatek
 
 #define N 5000   // lub 3072, 4096 w kolejnych eksperymentach
 
-#define PP (3 * 1024 * 1024)  // 12 MB w bajtach
+#define PP (3 * 1024 * 1024)  // 3 MB w bajtach
 
 
 void multiply_matrices_IKJ(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
@@ -30,13 +30,16 @@ void multiply_matrices_IKJ(float matrix_a[N][N], float matrix_b[N][N], float mat
 
 void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
-    size_t matrix_size = sizeof(float) * N * N;
-    printf("%zu\n", matrix_size);
+    size_t matrix_size = (size_t)(4 * N * N);
+    size_t matrix_size_mb = matrix_size / (1024 * 1024); // Teraz poprawnie przeliczamy na MB
+
+    printf("Wielkosc macierzy: %zu\n", matrix_size);
+    printf("Wielkosc macierzy w MB: %zu\n", matrix_size_mb);
+
     int k = (int)ceil((double)matrix_size / PP); 
     int r = (int)ceil((double)N / k); 
     printf("Bloki: %d\n",k );
-    printf("Ilosc slow: %d\n",r );
-
+    printf("Ilosc slow w dlugosci wiersza na blok: %d\n",r );
 
     for (int j = 0; j < N; j += r) {
         #pragma omp parallel for
@@ -52,11 +55,10 @@ void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float 
 
 void multiply_matrices_6_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
-    int r = (int)floor(sqrt(PP/ (sizeof(float) * 3.0) ));
+    int r = (int)floor(sqrt(PP / (sizeof(float) * 3.0) ));
     int ka = (int)ceil(N/r);
-    printf("Bloki: %d\n",ka );
-    printf("Ilosc slow: %d\n",r );
-
+    printf("Podbloki: %d\n",ka );
+    printf("Ilosc slow na blok: %d\n",r );
 
     for (int i = 0; i < N; i += r) {
         for (int j = 0; j < N; j += r) {
