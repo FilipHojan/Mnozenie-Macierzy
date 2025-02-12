@@ -31,6 +31,7 @@ void multiply_matrices_IKJ(float matrix_a[N][N], float matrix_b[N][N], float mat
 void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
     size_t matrix_size = sizeof(float) * N * N;
+    printf("%zu\n", matrix_size);
     int k = (int)ceil((double)matrix_size / PP); 
     int r = (int)ceil((double)N / k); 
     printf("Bloki: %d\n",k );
@@ -51,8 +52,8 @@ void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float 
 
 void multiply_matrices_6_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
-    int r = floor(sqrt(PP/ (sizeof(float) * 3.0) ));
-    int ka = floor(N/r);
+    int r = (int)floor(sqrt(PP/ (sizeof(float) * 3.0) ));
+    int ka = (int)ceil(N/r);
     printf("Bloki: %d\n",ka );
     printf("Ilosc slow: %d\n",r );
 
@@ -136,6 +137,9 @@ int main(int argc, char* argv[])
 
     multiply_sequential(matrix_a, matrix_b, matrix_c_reference);
 
+
+    printf("*********************\n");
+    printf("Metoda 3-petlowa\n");
     // Test dla funkcji IKJ
     clear_result_matrix(matrix_c);
     start = clock();
@@ -144,7 +148,11 @@ int main(int argc, char* argv[])
     used_time= ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("Funkcja IJK zajela %f sekund\n", used_time);
     check_results(matrix_c, matrix_c_reference);
+    printf("\n");
 
+
+    printf("*********************\n");
+    printf("Metoda 4-petlowa\n");
     // Test dla funkcji 4-pętlowej IKJ
     clear_result_matrix(matrix_c);
     start = clock();
@@ -153,8 +161,13 @@ int main(int argc, char* argv[])
     used_time= ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("Funkcja 4_loops zajela %f sekund\n", used_time);
     check_results(matrix_c, matrix_c_reference);
+    printf("\n");
     
 
+
+
+    printf("*********************\n");
+    printf("Metoda 6-petlowa\n");
     // Test dla funkcji 6-pętlowej  IKJ
     clear_result_matrix(matrix_c);
     start = clock();
@@ -163,7 +176,7 @@ int main(int argc, char* argv[])
     used_time= ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("Funkcja 6_loops zajela %f sekund\n", used_time);
     check_results(matrix_c, matrix_c_reference);
-
+    printf("\n");
 
     return 0;
 }
