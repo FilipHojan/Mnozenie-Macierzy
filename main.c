@@ -31,18 +31,20 @@ void multiply_matrices_IKJ(float matrix_a[N][N], float matrix_b[N][N], float mat
 void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
     size_t matrix_size = (size_t)(4 * N * N);
-    size_t matrix_size_mb = matrix_size / (1024 * 1024); // Teraz poprawnie przeliczamy na MB
+    int matrix_size_mb = (int)ceil((double)matrix_size / (1024 * 1024)); 
 
     printf("Wielkosc macierzy: %zu\n", matrix_size);
-    printf("Wielkosc macierzy w MB: %zu\n", matrix_size_mb);
+    printf("Wielkosc macierzy w MB: %d\n", matrix_size_mb);
 
     int k = (int)ceil((double)matrix_size / PP); 
     int r = (int)ceil((double)N / k); 
     printf("Bloki: %d\n",k );
     printf("Ilosc slow w dlugosci wiersza na blok: %d\n",r );
 
+
+    #pragma omp parallel
     for (int j = 0; j < N; j += r) {
-        #pragma omp parallel for
+        #pragma omp for
         for (int i = 0; i < N; i++) {
             for (int k = 0; k < N; k++) {
                 for (int jj = j; jj < j+r-1; jj++) {
@@ -56,14 +58,17 @@ void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float 
 void multiply_matrices_6_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
     int r = (int)floor(sqrt(PP / (sizeof(float) * 3.0) ));
-    int ka = (int)ceil(N/r);
+    int ka = (int)ceil((double)N / r);
     printf("Podbloki: %d\n",ka );
     printf("Ilosc slow na blok: %d\n",r );
 
+
+
+    #pragma omp parallel
     for (int i = 0; i < N; i += r) {
         for (int j = 0; j < N; j += r) {
             for (int k = 0; k < N; k += r) {
-                #pragma omp parallel for
+                #pragma omp for
                 for (int ii = i; ii < i + r; ii++) {
                     for (int kk = k; kk < k + r; kk++) {
                         for (int jj = j; jj < j + r; jj++) {
