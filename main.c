@@ -11,7 +11,7 @@ Projekt mnożenia macierzy Filip Hojan & Igor Swiatek
 #include <math.h>
 #include <stdlib.h>
 
-#define N 5000   // lub 3072, 4096 w kolejnych eksperymentach
+#define N 5120   // lub 3072, 4096 w kolejnych eksperymentach
 
 #define PP (3 * 1024 * 1024)  // 3 MB w bajtach
 
@@ -41,13 +41,14 @@ void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float 
     printf("Bloki: %d\n",k );
     printf("Ilosc slow w dlugosci wiersza na blok: %d\n",r );
 
+    int n = 31*157;
 
     #pragma omp parallel
-    for (int j = 0; j < N; j += r) {
+    for (int j = 0; j < n; j += r) {
         #pragma omp for
-        for (int i = 0; i < N; i++) {
-            for (int k = 0; k < N; k++) {
-                for (int jj = j; jj < j+r-1; jj++) {
+        for (int i = 0; i < n; i++) {
+            for (int k = 0; k < n; k++) {
+                for (int jj = j; jj < j+r; jj++) {
                     matrix_c[i][jj] += matrix_a[i][k] * matrix_b[k][jj];
                 }
             }
@@ -57,6 +58,7 @@ void multiply_matrices_4_loop(float matrix_a[N][N], float matrix_b[N][N], float 
 
 void multiply_matrices_6_loop(float matrix_a[N][N], float matrix_b[N][N], float matrix_c[N][N])
 {
+
     int r = (int)floor(sqrt(PP / (sizeof(float) * 3.0) ));
     int ka = (int)ceil((double)N / r);
     printf("Podbloki: %d\n",ka );
@@ -105,8 +107,9 @@ void clear_result_matrix(float matrix_c[N][N])
 
 int check_results(float matrix_c[N][N], float matrix_c_reference[N][N])
 {
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
+    int n=5120;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
             if (abs(matrix_c_reference[i][j] - matrix_c[i][j]) > 0.001) {
                 printf("Błąd: %f != %f w pozycji [%d][%d]\n", matrix_c_reference[i][j], matrix_c[i][j], i, j);
                 return 0;
@@ -118,9 +121,10 @@ int check_results(float matrix_c[N][N], float matrix_c_reference[N][N])
 
 void multiply_sequential(float matrix_a[N][N], float matrix_b[N][N], float matrix_c_reference[N][N])
 {
-    for (int i = 0; i < N; i++) {
-        for (int k = 0; k < N; k++) {
-            for (int j = 0; j < N; j++) {
+    int n = 5120;
+    for (int i = 0; i < n; i++) {
+        for (int k = 0; k < n; k++) {
+            for (int j = 0; j < n; j++) {
                 matrix_c_reference[i][j] += matrix_a[i][k] * matrix_b[k][j];
             }
         }
